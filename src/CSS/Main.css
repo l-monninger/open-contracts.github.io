@@ -1,0 +1,15 @@
+::-webkit-scrollbar {
+    display: none;
+}
+
+
+
+body {
+	scrollbar-width: none;
+	-ms-overflow-style: none; /* IE 11 */
+    scrollbar-width: none; /* Firefox 64 */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	overflow: -moz-scrollbars-none;
+	text-rendering: geometricPrecision;
+}
