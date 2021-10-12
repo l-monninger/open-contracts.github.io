@@ -1,0 +1,99 @@
+<h1>Open Contracts Dapp </h1>
+<div>
+<a href="https://github.com/open-contracts/open-contracts.github.io"> (website source code)</a>
+</div>
+<br />
+
+<script charset="utf-8" src="https://cdn.jsdelivr.net/npm/@metamask/detect-provider@1.2.0/dist/detect-provider.min.js" type="text/javascript"> </script>
+<script charset="utf-8" src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.4.6/ethers.umd.min.js" type="text/javascript"> </script>
+<script charset="utf-8" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" type="text/javascript"> </script>
+
+<script charset="utf-8" src="attestation/cbor.js" type="text/javascript"></script>
+<script charset="utf-8" src="attestation/cose.js" type="text/javascript"> </script>
+<script charset="utf-8" src="attestation/x509.js" type="text/javascript"> </script>
+<script charset="utf-8" src="attestation/base64.js" type="text/javascript"> </script>
+<script charset="utf-8" src="main.js" type="text/javascript"> </script>
+
+<p>
+This is the Open Contracts Dapp. Currently work in progress. Fornow, it is split into two sections, which will be merged in the end.<br>
+The first section requires Metamask. It allows general purpose client<->blockchain interaction with any smart contract on Ethereum. 
+The second section allows the client to securely interact with the API exposed by the nitro enclave running our <a href="https://github.com/open-contracts/default-image"> default-image/oracle_enclave</a> code.<br>
+In the end, the two will be merged to allow the user to interact with an "Open Contract", which is an Ethereum smart contract containing a specific function which only accepts output signed by an Oracle Enclave executing a particular oracle.py.
+</p>
+<hr><hr>
+<p>
+To interact with an arbitrary smart contract on Ethereum, submit the Ethereum Contract Address and Contract ABI via the form below, which can be found e.g. on Etherscan.io.
+The defaults correspond to an unrelated contract I published on the Ropsten Testnet a while ago. <a href="https://ropsten.etherscan.io/address/0x8d7B945C7e0B412AAD8CBB8D301aD0f7F3f38cC3#code"> You can check it out on Etherscan </a>.
+It does not have any "Open Contracts Functionality", it's just for us to learn how to interact with Ethereum from the browser. If you want to interact with it, make sure you set your MetaMask to "Ropsten Test Network".
+</p>
+<div>
+<form id="ContractForm" action="javascript:void(0);">
+	<label for="network"><b>Metamask connected to: </b></label><em id="network"> awaiting connection...</em>
+	<br />
+	<label for="contractAddress"><b>Contract Address:</b></label>
+	<input id="contractAddress" type="text" value="0x8d7B945C7e0B412AAD8CBB8D301aD0f7F3f38cC3" size="60" />
+	<br />
+	<label for="contractABI"><b>Contract ABI:</b></label><br>
+	<textarea id="contractABI"  rows="10" cols="80">
+[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"abatementCost","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"abatementShares","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"balances","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"abatement","type":"uint256"}],"name":"commit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"commitment","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"isParticipant","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"participants","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"socialCost","type":"uint256"}],"name":"participate","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"reimburse","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"government","type":"address"},{"internalType":"uint256","name":"abatementShare","type":"uint256"}],"name":"reportAbatement","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"sattelite","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"socialCosts","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"sufficientBalance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"}]
+	</textarea>	
+	<br />
+	<input type="submit" value="Load Contract" onclick="loadContract()" />
+</form>
+</div>
+<br />
+<div id="functionNames"></div>
+<br />
+<div id="currentFunction"></div>
+<div id="results"></div>
+<hr><hr>
+<p>
+This section interacts with the API exposed by the server.py running inside the  <a href="https://github.com/open-contracts/default-image">oracle_enclave</a>.
+For now, users can submit and launch arbitrary oracle.py code, and receive output printed by the enclave.
+Soon, this client code will 
+	1) verify the attestation document to make sure it actually interacts with the right enclave 
+	2) match with an enclave provider by automatically interacting with the (yet nonexistent) market contract
+</p>
+<form id="submitAndRunOracle" action="javascript:void(0);">
+	<label for="enclaveProviderIP"><b>Enclave Provider IP:</b></label>
+	<input id="enclaveProviderIP" type="text" value="127.0.0.1" size="60" />
+	<script type="text/javascript">document.getElementById("enclaveProviderIP").value = new URLSearchParams(window.location.search).get("enclaveProviderIP")</script>
+	<br />
+	<label for="oracleCode"><b>Oracle.py Code:</b></label><br>
+	<textarea id="oracleCode" rows="20" cols="80">
+import opencontracts
+import urllib.request, certifi, ssl
+
+def main():
+    with opencontracts.enclave_backend() as enclave:
+
+      enclave.print("Enclave says hello!")
+
+      # you need to call this before trying to connect to a domain
+      enclave.open_up_domain("en.wikipedia.org")
+
+      # use e.g. urllib to perform a secure https requests as you would anywhere
+      ssl_context = ssl.create_default_context(cafile=certifi.where()) # checks certificate validity relative to Mozillas CA store
+      with urllib.request.urlopen('https://en.wikipedia.org/wiki/Vitalik_Buterin', context=ssl_context) as f:
+        html = f.read().decode('utf-8')
+        enclave.print(html[:400])
+
+      # sign the data using the enclave public key, for verification in solidity
+      signature = enclave.sign(html[:400].encode(), types=("bytes",))
+      enclave.print(signature)
+
+      # starts an interactive chrome session at http://<EC2_IP>:14500
+      # (en.wikipedia.org is still the only open domain)
+      html = enclave.interactive_session(url='en.wikipedia.org', instructions="Do the thing then push the button.", tcp_port=14500)
+      enclave.print(html[:400])
+
+if __name__ == '__main__':
+    main()
+	</textarea><br><br>
+	<input type="submit" value="Submit and run Oracle.py" onclick="connectEnclave()">
+</form>
+<u>Enclave Output:</u><br>
+<hr>
+<div id="enclaveOutput"></div>
+<hr>
+<div id="xpra"></div>
